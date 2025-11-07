@@ -26,4 +26,9 @@ class OrdenViewModel(
     fun cerrarMesa(mesaId: Int) {
         repo.cerrarMesa(mesaId)
     }
+
+    fun enviarOrden(mesaId: Int) {
+        repo.enviarOrden(mesaId)
+    }
+
 }

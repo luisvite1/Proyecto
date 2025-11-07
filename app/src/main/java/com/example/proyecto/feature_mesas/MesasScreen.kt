@@ -6,41 +6,80 @@ import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.material.icons.Icons
-
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
+import androidx.compose.material.icons.filled.Menu
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.example.proyecto.data.FakeDataSource
+import com.example.proyecto.data.SessionManager
 import com.example.proyecto.domain.Mesa
 import com.example.proyecto.domain.MesaEstado
-import androidx.compose.material.icons.filled.Menu
+import com.example.proyecto.domain.RolUsuario
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MesasScreen(
     onMesaSelected: (Int) -> Unit,
-    onIrAlMenu: () -> Unit
+    onPerfil: () -> Unit,
+    onCerrarSesion: () -> Unit,
+    onTerminos: () -> Unit
 ) {
-    val mesas = remember { FakeDataSource.mesas }
+    val currentUser = SessionManager.currentUser
+    val todasLasMesas = remember { FakeDataSource.mesas }
+
+    val mesas: List<Mesa> = when (currentUser?.rol) {
+        RolUsuario.ADMIN -> todasLasMesas
+        else -> {
+            val asignadas = currentUser?.mesasAsignadas ?: emptyList()
+            todasLasMesas.filter { it.id in asignadas }
+        }
+    }
+
+    var menuExpanded by remember { mutableStateOf(false) }
 
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Mesas") },
+                title = {
+                    Text(
+                        text = currentUser?.nombreCompleto ?: "Mesas"
+                    )
+                },
                 actions = {
-                    IconButton(onClick = onIrAlMenu) {
+                    IconButton(onClick = { menuExpanded = true }) {
                         Icon(
                             imageVector = Icons.Default.Menu,
                             contentDescription = "Menú"
+                        )
+                    }
+
+                    DropdownMenu(
+                        expanded = menuExpanded,
+                        onDismissRequest = { menuExpanded = false }
+                    ) {
+                        DropdownMenuItem(
+                            text = { Text("Perfil") },
+                            onClick = {
+                                menuExpanded = false
+                                onPerfil()
+                            }
+                        )
+                        DropdownMenuItem(
+                            text = { Text("Cerrar sesión") },
+                            onClick = {
+                                menuExpanded = false
+                                onCerrarSesion()
+                            }
+                        )
+                        Divider()
+                        DropdownMenuItem(
+                            text = { Text("Términos y condiciones") },
+                            onClick = {
+                                menuExpanded = false
+                                onTerminos()
+                            }
                         )
                     }
                 }

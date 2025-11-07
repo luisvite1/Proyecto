@@ -66,4 +66,22 @@ object ComanderoRepository {
         ordenesPorMesa.remove(mesaId)
         actualizarEstadoMesa(mesaId, MesaEstado.LIBRE)
     }
+    fun enviarOrden(mesaId: Int) {
+        val ordenActual = ordenesPorMesa[mesaId] ?: return
+        if (ordenActual.items.isEmpty()) return
+
+        // Subtotal de lo que se está enviando a cocina
+        val subtotal = ordenActual.items.sumOf { it.producto.precio * it.cantidad }
+
+        // Limpiamos items pendientes pero acumulamos el total
+        ordenesPorMesa[mesaId] = ordenActual.copy(
+            items = emptyList(),
+            totalAcumulado = ordenActual.totalAcumulado + subtotal
+        )
+    }
+
+
+
 }
+
+

@@ -1,4 +1,4 @@
-package com.example.proyecto.navigation
+
 
 import androidx.compose.runtime.Composable
 import androidx.navigation.NavType
@@ -10,9 +10,13 @@ import com.example.proyecto.feature_mesas.MesasScreen
 import com.example.proyecto.feature_menu.MenuScreen
 import com.example.proyecto.feature_orden.OrdenScreen
 import com.example.proyecto.feature_login.LoginScreen
+import com.example.proyecto.feature_perfil.PerfilScreen
+import com.example.proyecto.feature_admin.AdminUsuariosScreen
+import com.example.proyecto.data.SessionManager
 import androidx.compose.material3.ExperimentalMaterial3Api
+import com.example.proyecto.navigation.NavRoutes
 
-@OptIn( ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AppNavHost() {
     val navController = rememberNavController()
@@ -36,8 +40,17 @@ fun AppNavHost() {
                 onMesaSelected = { mesaId ->
                     navController.navigate(NavRoutes.orden(mesaId))
                 },
-                onIrAlMenu = {
-                    navController.navigate(NavRoutes.menu(0))
+                onPerfil = {
+                    navController.navigate(NavRoutes.PERFIL)
+                },
+                onCerrarSesion = {
+                    SessionManager.logout()
+                    navController.navigate(NavRoutes.LOGIN) {
+                        popUpTo(NavRoutes.LOGIN) { inclusive = true }
+                    }
+                },
+                onTerminos = {
+                    // Por ahora no hacemos nada, o podrías ir a otra pantalla
                 }
             )
         }
@@ -51,7 +64,7 @@ fun AppNavHost() {
             val mesaId = backStackEntry.arguments?.getInt("mesaId") ?: 0
             MenuScreen(
                 mesaId = mesaId,
-                onProductoSeleccionado = { /* agregar en repo y regresar */ },
+                onProductoSeleccionado = { /* opcional */ },
                 onBack = { navController.popBackStack() }
             )
         }
@@ -69,6 +82,27 @@ fun AppNavHost() {
                 onAgregarProducto = {
                     navController.navigate(NavRoutes.menu(mesaId))
                 }
+            )
+        }
+
+        composable(NavRoutes.PERFIL) {
+            PerfilScreen(
+                onBack = { navController.popBackStack() },
+                onAdminUsuarios = {
+                    navController.navigate(NavRoutes.ADMIN_USERS)
+                },
+                onCerrarSesionTodos = {
+                    SessionManager.logoutAllDevices()
+                    navController.navigate(NavRoutes.LOGIN) {
+                        popUpTo(NavRoutes.LOGIN) { inclusive = true }
+                    }
+                }
+            )
+        }
+
+        composable(NavRoutes.ADMIN_USERS) {
+            AdminUsuariosScreen(
+                onBack = { navController.popBackStack() }
             )
         }
     }

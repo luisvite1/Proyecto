@@ -5,23 +5,16 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
-import androidx.compose.material3.Button
-import androidx.compose.material3.Checkbox
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.graphics.Color
+import com.example.proyecto.data.SessionManager
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -103,11 +96,10 @@ fun LoginScreen(
 
             Button(
                 onClick = {
-                    // VALIDACIÓN SUPER SIMPLE
-                    if (validarLogin(usuario, password)) {
+                    val ok = SessionManager.login(usuario, password)
+                    if (ok) {
                         error = null
                         onLoginSuccess()
-                        // aquí podrías guardar en DataStore si recordar == true
                     } else {
                         error = "Usuario o contraseña incorrectos"
                     }
@@ -118,15 +110,4 @@ fun LoginScreen(
             }
         }
     }
-}
-
-// aquí simulas tu "tabla de usuarios"
-private fun validarLogin(user: String, pass: String): Boolean {
-    // puedes cambiar esto por una lista
-    val usuariosValidos = listOf(
-        "mesero1" to "1234",
-        "admin" to "admin",
-        "caja" to "caja123"
-    )
-    return usuariosValidos.any { it.first == user && it.second == pass }
 }

@@ -1,6 +1,7 @@
 package com.example.proyecto.feature_orden
 
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -11,19 +12,23 @@ import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Divider
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.example.proyecto.data.ComanderoRepository
 import com.example.proyecto.domain.OrdenItem
 import com.example.proyecto.ui.theme.GreenPrimary
-import androidx.compose.material3.ExperimentalMaterial3Api
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -32,9 +37,13 @@ fun OrdenScreen(
     onBack: () -> Unit,
     onAgregarProducto: () -> Unit
 ) {
+    // Estado local de la orden
+    var orden by remember { mutableStateOf(ComanderoRepository.getOrdenDeMesa(mesaId)) }
 
-    val orden = ComanderoRepository.getOrdenDeMesa(mesaId)
-    val total = orden.items.sumOf { it.producto.precio * it.cantidad }
+    // Total de lo pendiente (lo que aún no se envía a cocina)
+    val totalPendiente = orden.items.sumOf { it.producto.precio * it.cantidad }
+    // Total actual de la mesa (todo lo enviado + lo pendiente)
+    val totalActual = orden.totalAcumulado + totalPendiente
 
     Scaffold(
         topBar = {
@@ -63,18 +72,62 @@ fun OrdenScreen(
                 containerColor = GreenPrimary,
                 contentColor = Color.White
             ) {
-                Text(
-                    text = "Total: $${"%.2f".format(total)}",
-                    modifier = Modifier.weight(1f).padding(start = 16.dp)
-                )
-                Button(
-                    onClick = { /* TODO: enviar */ },
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = Color.White
-                    ),
-                    modifier = Modifier.padding(end = 12.dp)
+                Row(
+                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
                 ) {
-                    Text(text = "Enviar", color = GreenPrimary)
+                    // ENVIAR (a cocina) -> solo cuando hay productos pendientes
+                    Button(
+                        onClick = {
+                            ComanderoRepository.enviarOrden(mesaId)
+                            // Recargamos la orden (ahora con items vacíos y totalAcumulado sumado)
+                            orden = ComanderoRepository.getOrdenDeMesa(mesaId)
+                        },
+                        enabled = orden.items.isNotEmpty(),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = Color.White
+                        ),
+                        modifier = Modifier.padding(horizontal = 4.dp)
+                    ) {
+                        Text(
+                            text = "Enviar",
+                            color = GreenPrimary
+                        )
+                    }
+
+                    // CERRAR MESA (ticket / cuenta) -> depende del total actual
+                    Button(
+                        onClick = {
+                            ComanderoRepository.marcarCuenta(mesaId)
+                        },
+                        enabled = totalActual > 0.0,
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = Color.White
+                        ),
+                        modifier = Modifier.padding(horizontal = 4.dp)
+                    ) {
+                        Text(
+                            text = "Cerrar mesa",
+                            color = GreenPrimary
+                        )
+                    }
+
+                    // MESA PAGADA (liberar mesa) -> depende del total actual
+                    Button(
+                        onClick = {
+                            ComanderoRepository.cerrarMesa(mesaId)
+                            onBack()
+                        },
+                        enabled = totalActual > 0.0,
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = Color.White
+                        ),
+                        modifier = Modifier.padding(horizontal = 4.dp)
+                    ) {
+                        Text(
+                            text = "Mesa pagada",
+                            color = GreenPrimary
+                        )
+                    }
                 }
             }
         }
@@ -82,6 +135,13 @@ fun OrdenScreen(
         Column(
             modifier = Modifier.padding(padding)
         ) {
+            // Total actual de la mesa (arriba, pequeño)
+            Text(
+                text = "Total actual: $${"%.2f".format(totalActual)}",
+                modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+                color = Color.Gray
+            )
+
             LazyColumn {
                 items(orden.items) { item ->
                     OrdenItemRow(item)
@@ -94,11 +154,11 @@ fun OrdenScreen(
 
 @Composable
 private fun OrdenItemRow(item: OrdenItem) {
-    androidx.compose.foundation.layout.Row(
+    Row(
         modifier = Modifier
             .padding(horizontal = 12.dp, vertical = 10.dp)
     ) {
-        androidx.compose.foundation.layout.Column(
+        Column(
             modifier = Modifier.weight(1f)
         ) {
             Text(text = "${item.cantidad} x ${item.producto.nombre}")
