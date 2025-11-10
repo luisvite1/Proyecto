@@ -29,9 +29,9 @@ object FakeDataSource {
 
     // mesas iniciales
     val mesas = mutableListOf(
-        Mesa(1, "Mesa 1", MesaEstado.LIBRE),
-        Mesa(2, "Mesa 2", MesaEstado.LIBRE),
-        Mesa(3, "Mesa 3", MesaEstado.LIBRE),
-        Mesa(4, "Terraza 1", MesaEstado.LIBRE),
+        Mesa(1, "Mesa 1", MesaEstado.LIBRE, capacidad = 4, ubicacion = "Interior"),
+        Mesa(2, "Mesa 2", MesaEstado.OCUPADA, capacidad = 4, ubicacion = "Interior"),
+        Mesa(3, "Mesa 3", MesaEstado.CUENTA, capacidad = 6, ubicacion = "Terraza"),
+        Mesa(4, "Terraza 1", MesaEstado.LIBRE, capacidad = 6, ubicacion = "Terraza"),
     )
 }

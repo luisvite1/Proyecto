@@ -14,6 +14,9 @@ import com.example.proyecto.feature_perfil.PerfilScreen
 import com.example.proyecto.feature_admin.AdminUsuariosScreen
 import com.example.proyecto.data.SessionManager
 import androidx.compose.material3.ExperimentalMaterial3Api
+import com.example.proyecto.feature_admin.AdminMesasScreen
+import com.example.proyecto.feature_admin.AdminRegistrarUsuarioScreen
+import com.example.proyecto.feature_admin.AdminUsuarioDetalleScreen
 import com.example.proyecto.navigation.NavRoutes
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -84,12 +87,23 @@ fun AppNavHost() {
                 }
             )
         }
+        composable(NavRoutes.ADMIN_MESAS) {
+            AdminMesasScreen(
+                onBack = { navController.popBackStack() }
+            )
+        }
 
         composable(NavRoutes.PERFIL) {
             PerfilScreen(
                 onBack = { navController.popBackStack() },
                 onAdminUsuarios = {
                     navController.navigate(NavRoutes.ADMIN_USERS)
+                },
+                onRegistrarUsuario = {
+                    navController.navigate(NavRoutes.ADMIN_REGISTRAR_USUARIO)
+                },
+                onAdminMesas = {
+                    navController.navigate(NavRoutes.ADMIN_MESAS)
                 },
                 onCerrarSesionTodos = {
                     SessionManager.logoutAllDevices()
@@ -99,10 +113,42 @@ fun AppNavHost() {
                 }
             )
         }
+        composable(NavRoutes.ADMIN_REGISTRAR_USUARIO) {
+            AdminRegistrarUsuarioScreen(
+                onBack = { navController.popBackStack() }
+            )
+        }
 
         composable(NavRoutes.ADMIN_USERS) {
             AdminUsuariosScreen(
+                onBack = { navController.popBackStack() },
+                onUserClick = { username ->
+                    navController.navigate(NavRoutes.adminUsuarioDetalle(username))
+                }
+            )
+        }
+        composable(
+            route = NavRoutes.ADMIN_USER_DETAIL,
+            arguments = listOf(
+                navArgument("username") { type = NavType.StringType }
+            )
+        ) { backStackEntry ->
+            val username = backStackEntry.arguments?.getString("username") ?: ""
+            AdminUsuarioDetalleScreen(
+                username = username,
                 onBack = { navController.popBackStack() }
+            )
+        }
+
+
+
+
+        composable(NavRoutes.ADMIN_USERS) {
+            AdminUsuariosScreen(
+                onBack = { navController.popBackStack() },
+                onUserClick = { username ->
+                    navController.navigate(NavRoutes.adminUsuarioDetalle(username))
+                }
             )
         }
     }

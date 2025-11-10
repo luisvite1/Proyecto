@@ -1,6 +1,10 @@
 package com.example.proyecto.data
 
 import com.example.proyecto.domain.*
+import com.example.proyecto.data.SessionManager
+import com.example.proyecto.domain.Mesa
+import com.example.proyecto.domain.MesaEstado
+
 
 /**
  * Repositorio en memoria.
@@ -79,6 +83,30 @@ object ComanderoRepository {
             totalAcumulado = ordenActual.totalAcumulado + subtotal
         )
     }
+
+    fun agregarMesa(nombre: String, capacidad: Int, ubicacion: String): Mesa {
+        val nuevoId = (FakeDataSource.mesas.maxOfOrNull { it.id } ?: 0) + 1
+        val nuevaMesa = Mesa(
+            id = nuevoId,
+            nombre = nombre,
+            estado = MesaEstado.LIBRE,
+            capacidad = capacidad,
+            ubicacion = ubicacion
+        )
+        FakeDataSource.mesas.add(nuevaMesa)
+        return nuevaMesa
+    }
+
+
+    fun eliminarMesa(mesaId: Int) {
+        // Cerrar orden si existe
+        ordenesPorMesa.remove(mesaId)
+        // Quitar mesa de la lista
+        FakeDataSource.mesas.removeAll { it.id == mesaId }
+        // Quitar mesa de los usuarios
+        SessionManager.removerMesaDeUsuarios(mesaId)
+    }
+
 
 
 

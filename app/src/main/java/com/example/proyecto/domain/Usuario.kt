@@ -10,5 +10,6 @@ data class Usuario(
     val password: String,
     val nombreCompleto: String,
     val rol: RolUsuario,
-    val mesasAsignadas: List<Int>
+    val mesasAsignadas: List<Int>,
+    val horarioSemanal: List<TurnoDia> = emptyList()
 )
